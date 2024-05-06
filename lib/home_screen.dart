@@ -98,6 +98,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       todos.add(todo);
                      _updateLocalStorage();
 
+
+
+
+
                       controller.clear();
                     });
                   },
