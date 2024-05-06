@@ -100,8 +100,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
 
 
-
-
                       controller.clear();
                     });
                   },
