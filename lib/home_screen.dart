@@ -16,8 +16,6 @@ class _HomeScreenState extends State<HomeScreen> {
   TextEditingController controller = TextEditingController();
   final String todoListKey = "todo_list";
 
-
-
   @override
   void initState() {
     super.initState();
@@ -25,24 +23,17 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _loadTodos() async {
-
-
     SharedPreferences prefs = await SharedPreferences.getInstance();
-
     var todosInStorage = prefs.getStringList(todoListKey);
 
     setState(() {
       todos = todosInStorage ?? [];
     });
-
-
   }
 
   Future<void> _updateLocalStorage() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-
     await prefs.setStringList(todoListKey, todos);
-
   }
 
   @override
@@ -94,12 +85,8 @@ class _HomeScreenState extends State<HomeScreen> {
                   onPressed: () {
                     setState(() {
                       var todo = controller.text;
-
                       todos.add(todo);
-                     _updateLocalStorage();
-
-
-
+                      _updateLocalStorage();
                       controller.clear();
                     });
                   },
@@ -142,21 +129,38 @@ class _HomeScreenState extends State<HomeScreen> {
                   padding: EdgeInsets.symmetric(horizontal: 20),
                   itemBuilder: (context, index) {
                     String todo = todos[index];
-                    return GestureDetector(
-                      onTap: () {
-                        setState(() {
-                         todos.remove(todo);
-                         _updateLocalStorage();
-
-                        });
-                      },
-                      child: Text(
-                        todo,
-                        style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w500,
-                            fontSize: 20),
-                      ),
+                    return Column(
+                      children: [
+                        ListTile(
+                          leading: Checkbox(
+                            value: false, 
+                            onChanged: (newValue) {
+                              setState(() {
+                                
+                                
+                              });
+                            },
+                            activeColor: Colors.blue, 
+                          ),
+                          title: Text(
+                            todo,
+                            style: const TextStyle(
+                                color: Colors.white,
+                                fontWeight: FontWeight.w500,
+                                fontSize: 24),
+                          ),
+                          trailing: IconButton(
+                            icon: Icon(Icons.delete),
+                            onPressed: () {
+                              setState(() {
+                                todos.removeAt(index);
+                                _updateLocalStorage();
+                              });
+                            },
+                          ),
+                        ),
+                        const Divider(color: Color.fromARGB(255, 0, 0, 0)),
+                      ],
                     );
                   },
                 ),
@@ -170,7 +174,6 @@ class _HomeScreenState extends State<HomeScreen> {
                 setState(() {
                   todos.clear();
                   _updateLocalStorage();
-                  // save when all todos are cleared
                 });
               },
               child: const Text(
