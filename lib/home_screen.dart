@@ -4,6 +4,8 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:todo/todo.dart';
+
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
 
@@ -12,7 +14,7 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  List<String> todos = [];
+  List<Todo> todos = [];
   TextEditingController controller = TextEditingController();
   final String todoListKey = "todo_list";
 
@@ -24,16 +26,33 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _loadTodos() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    var todosInStorage = prefs.getStringList(todoListKey);
+    var todosInStorage = prefs.getString(todoListKey);
 
+
+    if (todosInStorage == null) {
+      return;
+    }
+
+    var decodedTodos = jsonDecode(todosInStorage);
+    List<Todo> t = [];
+    for (var item in decodedTodos) {
+      
+      Todo todo = Todo.fromJson(item);
+      t.add(todo);
+
+    }
     setState(() {
-      todos = todosInStorage ?? [];
+      todos =  t;
     });
   }
 
   Future<void> _updateLocalStorage() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    await prefs.setStringList(todoListKey, todos);
+
+
+    var maps = todos.map((e) => e.toJson()).toList();
+    var json = jsonEncode(maps);
+    await prefs.setString(todoListKey, json);
   }
 
   @override
@@ -84,7 +103,9 @@ class _HomeScreenState extends State<HomeScreen> {
                 ElevatedButton(
                   onPressed: () {
                     setState(() {
-                      var todo = controller.text;
+                      var content = controller.text;
+
+                      var todo = Todo(content, false);
                       todos.add(todo);
                       _updateLocalStorage();
                       controller.clear();
@@ -124,43 +145,40 @@ class _HomeScreenState extends State<HomeScreen> {
                   color: const Color.fromARGB(95, 255, 255, 255),
                   borderRadius: BorderRadius.circular(10),
                 ),
-                child: ListView.builder(
+                child: ListView.separated(
                   itemCount: todos.length,
-                  padding: EdgeInsets.symmetric(horizontal: 20),
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  separatorBuilder: (context, index) => Divider(),
                   itemBuilder: (context, index) {
-                    String todo = todos[index];
-                    return Column(
-                      children: [
-                        ListTile(
-                          leading: Checkbox(
-                            value: false, 
-                            onChanged: (newValue) {
-                              setState(() {
-                                
-                                
-                              });
-                            },
-                            activeColor: Colors.blue, 
-                          ),
-                          title: Text(
-                            todo,
-                            style: const TextStyle(
-                                color: Colors.white,
-                                fontWeight: FontWeight.w500,
-                                fontSize: 24),
-                          ),
-                          trailing: IconButton(
-                            icon: Icon(Icons.delete),
-                            onPressed: () {
-                              setState(() {
-                                todos.removeAt(index);
-                                _updateLocalStorage();
-                              });
-                            },
-                          ),
-                        ),
-                        const Divider(color: Color.fromARGB(255, 0, 0, 0)),
-                      ],
+                    Todo todo = todos[index];
+                    return ListTile(
+                      leading: Checkbox(
+                        value: todo.done, 
+                        onChanged: (newValue) {
+                          setState(() {
+                            
+                            
+                          });
+                        },
+                        activeColor: Colors.blue, 
+                      ),
+                      title: Text(
+                        todo.content,
+
+                        style: const TextStyle(
+                            color: Colors.white,
+                            fontWeight: FontWeight.w500,
+                            fontSize: 24),
+                      ),
+                      trailing: IconButton(
+                        icon: const Icon(Icons.delete),
+                        onPressed: () {
+                          setState(() {
+                            todos.removeAt(index);
+                            _updateLocalStorage();
+                          });
+                        },
+                      ),
                     );
                   },
                 ),
