@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:todo/Models/filter_type.dart';
 import 'package:todo/ProfileScreen.dart';
 
 import 'package:todo/todo.dart';
@@ -16,13 +17,37 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   List<Todo> todos = [];
+
+   List<Todo> filtertodos = [];
   TextEditingController controller = TextEditingController();
   final String todoListKey = "todo_list";
+
+  FilterType filterType = FilterType.all;
 
   @override
   void initState() {
     super.initState();
     _loadTodos();
+  }
+
+  void updateFilteredTodoList() {
+    setState(() {
+      switch (filterType) {
+        case FilterType.all:
+
+          filtertodos = todos;
+          break;
+
+        case FilterType.done:
+          filtertodos = todos.where((element) => element.done).toList();
+          break;
+
+        case FilterType.undone:
+        filtertodos = todos.where((element) => !element.done).toList();
+          break;
+        default:
+      }
+    });
   }
 
   Future<void> _loadTodos() async {
@@ -41,6 +66,7 @@ class _HomeScreenState extends State<HomeScreen> {
     }
     setState(() {
       todos = t;
+      updateFilteredTodoList();
     });
   }
 
@@ -57,15 +83,38 @@ class _HomeScreenState extends State<HomeScreen> {
     return Scaffold(
       backgroundColor: Colors.blue,
       appBar: AppBar(
-        backgroundColor: Colors.white, 
-        title: const Text(
-          "Lio Todo",
-          style: TextStyle(color: Colors.orange, fontSize: 24), 
+        backgroundColor: Colors.white,
+        title: Row(
+          children: [
+            const Text(
+              "Lio Todo",
+              style: TextStyle(color: Colors.orange, fontSize: 24),
+            ),
+            const Spacer(),
+            DropdownButton<FilterType>(
+              icon: const Icon(Icons.more_vert, color: Colors.black),
+              value: filterType,
+              onChanged: (value) {
+                if (value == filterType) {
+                  return;
+                }
+                filterType = value!;
+               
+                updateFilteredTodoList();
+              },
+              items: FilterType.values
+                  .map((e) => DropdownMenuItem<FilterType>(
+                        value: e,
+                        child: Text(e.title),
+                      ))
+                  .toList(),
+            ),
+          ],
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.account_circle), 
-            iconSize: 30, 
+            icon: const Icon(Icons.account_circle),
+            iconSize: 30,
             onPressed: () {
               Navigator.push(
                 context,
@@ -120,7 +169,7 @@ class _HomeScreenState extends State<HomeScreen> {
           ),
           const Padding(
             padding: EdgeInsets.symmetric(horizontal: 20.0),
-            child: Divider(color: Colors.white), 
+            child: Divider(color: Colors.white),
           ),
           const SizedBox(height: 20),
           const Text(
@@ -141,12 +190,12 @@ class _HomeScreenState extends State<HomeScreen> {
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: ListView.separated(
-                  itemCount: todos.length,
+                  itemCount: filtertodos.length,
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   separatorBuilder: (context, index) =>
-                     const Divider(color: Colors.black87),
+                      const Divider(color: Colors.black87),
                   itemBuilder: (context, index) {
-                    Todo todo = todos[index];
+                    Todo todo = filtertodos[index];
                     return ListTile(
                       leading: Checkbox(
                         value: todo.done,
@@ -154,6 +203,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           setState(() {
                             todo.done = newValue!;
                             _updateLocalStorage();
+                            updateFilteredTodoList();
                           });
                         },
                         activeColor: Colors.blue,
