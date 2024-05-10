@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:todo/profile.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -15,6 +17,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final TextEditingController _ageController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
 
+  final String cacheKey = "profile_settings";
+
   @override
   void initState() {
     super.initState();
@@ -23,23 +27,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   Future<void> _loadProfile() async {
     final prefs = await SharedPreferences.getInstance();
-    setState(() {
-      _fullNameController.text = prefs.getString('fullName') ?? '';
-      _ageController.text = prefs.getString('age') ?? '';
-      _emailController.text = prefs.getString('email') ?? '';
-      _userProfile = UserProfile(
-        fullName: _fullNameController.text,
-        age: int.tryParse(_ageController.text) ?? 0,
-        email: _emailController.text,
-      );
-    });
-  }
+    String? objStr = prefs.getString(cacheKey);
 
+    if (objStr == null) {
+      _userProfile = UserProfile(fullName: "", age: -1, email: "");
+    } else {
+      var map = jsonDecode(objStr);
+      _userProfile = UserProfile.fromJson(map);
+    }
+
+    updateControllers();
+  }
+   void updateControllers(){
+    _ageController.text = _userProfile.age.toString();
+    _emailController.text = _userProfile.email;
+    _fullNameController.text = _userProfile.fullName;
+   }
   Future<void> _saveProfile() async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('fullName', _fullNameController.text);
-    await prefs.setString('age', _ageController.text);
-    await prefs.setString('email', _emailController.text);
+
+    Map<String, dynamic> map = _userProfile.toJson();
+
+    String json = jsonEncode(map);
+
+    prefs.setString(cacheKey, json);
   }
 
   @override
@@ -74,15 +85,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
             TextField(
               controller: _fullNameController,
               onChanged: (value) {
-                setState(() {
                   _userProfile.fullName = value;
-                });
               },
               decoration: const InputDecoration(
                 filled: true,
                 fillColor: Colors.white,
                 border: OutlineInputBorder(),
-                contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                contentPadding:
+                    EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 labelText: "Ad Soyad",
               ),
             ),
@@ -90,16 +100,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
             TextField(
               controller: _ageController,
               onChanged: (value) {
-                setState(() {
-                  _userProfile.age = int.tryParse(value) ?? 0;
-                });
+                _userProfile.age = int.tryParse(value) ?? 0;
               },
               keyboardType: TextInputType.number,
               decoration: const InputDecoration(
                 filled: true,
                 fillColor: Colors.white,
                 border: OutlineInputBorder(),
-                contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                contentPadding:
+                    EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 labelText: "Yaş",
               ),
             ),
@@ -107,15 +116,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
             TextField(
               controller: _emailController,
               onChanged: (value) {
-                setState(() {
-                  _userProfile.email = value;
-                });
+                _userProfile.email = value;
               },
               decoration: const InputDecoration(
                 filled: true,
                 fillColor: Colors.white,
                 border: OutlineInputBorder(),
-                contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                contentPadding:
+                    EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                 labelText: "E-Posta",
                 floatingLabelBehavior: FloatingLabelBehavior.always,
               ),
@@ -124,6 +132,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ElevatedButton(
               onPressed: () {
                 _saveProfile();
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('Profil kaydedildi!'),
+                    duration: Duration(seconds: 2),
+                  ),
+                );
                 print(_userProfile.toJson());
               },
               style: ElevatedButton.styleFrom(

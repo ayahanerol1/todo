@@ -12,4 +12,12 @@ class UserProfile {
       "email": email,
     };
   }
+
+  factory UserProfile.fromJson(Map<String, dynamic> map) {
+    return UserProfile(
+      fullName: map["fullName"],
+      age: map["age"],
+      email: map["email"],
+    );
+  }
 }

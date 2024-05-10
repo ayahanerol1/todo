@@ -151,7 +151,10 @@ class _HomeScreenState extends State<HomeScreen> {
                       leading: Checkbox(
                         value: todo.done,
                         onChanged: (newValue) {
-                          setState(() {});
+                          setState(() {
+                            todo.done = newValue!;
+                            _updateLocalStorage();
+                          });
                         },
                         activeColor: Colors.blue,
                       ),
