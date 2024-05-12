@@ -1,11 +1,9 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:todo/Models/filter_type.dart';
 import 'package:todo/ProfileScreen.dart';
-
 import 'package:todo/todo.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -17,11 +15,9 @@ class HomeScreen extends StatefulWidget {
 
 class _HomeScreenState extends State<HomeScreen> {
   List<Todo> todos = [];
-
-   List<Todo> filtertodos = [];
+  List<Todo> filtertodos = [];
   TextEditingController controller = TextEditingController();
   final String todoListKey = "todo_list";
-
   FilterType filterType = FilterType.all;
 
   @override
@@ -34,16 +30,13 @@ class _HomeScreenState extends State<HomeScreen> {
     setState(() {
       switch (filterType) {
         case FilterType.all:
-
           filtertodos = todos;
           break;
-
         case FilterType.done:
           filtertodos = todos.where((element) => element.done).toList();
           break;
-
         case FilterType.undone:
-        filtertodos = todos.where((element) => !element.done).toList();
+          filtertodos = todos.where((element) => !element.done).toList();
           break;
         default:
       }
@@ -72,7 +65,6 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _updateLocalStorage() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-
     var maps = todos.map((e) => e.toJson()).toList();
     var json = jsonEncode(maps);
     await prefs.setString(todoListKey, json);
@@ -99,7 +91,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   return;
                 }
                 filterType = value!;
-               
                 updateFilteredTodoList();
               },
               items: FilterType.values
@@ -148,8 +139,18 @@ class _HomeScreenState extends State<HomeScreen> {
                 ElevatedButton(
                   onPressed: () {
                     setState(() {
-                      var content = controller.text;
-                      var todo = Todo(content, false);
+                      var content =
+                          'Yapılacak işin içeriği'; // Örnek bir todo içeriği
+                      var creationDate = DateTime.now();
+
+                      var todo = Todo(
+                        content: content,
+                        done:
+                            false, // Varsayılan olarak 'yapılmadı' olarak ayarla
+                        creationDate: creationDate,
+                        lastUpdated:
+                            creationDate, // İlk oluşturulduğunda güncelleme tarihi de oluşturulma tarihi ile aynı
+                      );
                       todos.add(todo);
                       _updateLocalStorage();
                       controller.clear();
@@ -202,6 +203,8 @@ class _HomeScreenState extends State<HomeScreen> {
                         onChanged: (newValue) {
                           setState(() {
                             todo.done = newValue!;
+                            todo.lastUpdated =
+                                DateTime.now(); // Güncelleme tarihini ayarla
                             _updateLocalStorage();
                             updateFilteredTodoList();
                           });
@@ -211,16 +214,36 @@ class _HomeScreenState extends State<HomeScreen> {
                       title: Text(
                         todo.content,
                         style: const TextStyle(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w500,
-                            fontSize: 24),
+                          color: Colors.white,
+                          fontWeight: FontWeight.w500,
+                          fontSize: 24,
+                        ),
+                      ),
+                      subtitle: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'Oluşturulma Tarihi: ${todo.creationDate.toString()}',
+                            style: TextStyle(
+                              color: Colors.white,
+                            ),
+                          ),
+                          if (todo.creationDate != todo.lastUpdated)
+                            Text(
+                              'Son Güncelleme Tarihi: ${todo.lastUpdated.toString()}',
+                              style: TextStyle(
+                                color: Colors.white,
+                              ),
+                            ),
+                        ],
                       ),
                       trailing: IconButton(
                         icon: const Icon(Icons.delete),
                         onPressed: () {
                           setState(() {
-                            todos.removeAt(index);
+                            todos.remove(todo);
                             _updateLocalStorage();
+                            updateFilteredTodoList();
                           });
                         },
                       ),
