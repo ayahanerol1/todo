@@ -139,17 +139,16 @@ class _HomeScreenState extends State<HomeScreen> {
                 ElevatedButton(
                   onPressed: () {
                     setState(() {
-                      var content =
-                          'Yapılacak işin içeriği'; // Örnek bir todo içeriği
+                      var content = controller.text;
+                      if (content.isEmpty) return;
+
                       var creationDate = DateTime.now();
 
                       var todo = Todo(
                         content: content,
-                        done:
-                            false, // Varsayılan olarak 'yapılmadı' olarak ayarla
+                        done: false,
                         creationDate: creationDate,
-                        lastUpdated:
-                            creationDate, // İlk oluşturulduğunda güncelleme tarihi de oluşturulma tarihi ile aynı
+                        lastUpdated: creationDate,
                       );
                       todos.add(todo);
                       _updateLocalStorage();
@@ -203,8 +202,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         onChanged: (newValue) {
                           setState(() {
                             todo.done = newValue!;
-                            todo.lastUpdated =
-                                DateTime.now(); // Güncelleme tarihini ayarla
+                            todo.lastUpdated = DateTime.now();
                             _updateLocalStorage();
                             updateFilteredTodoList();
                           });

@@ -2,7 +2,7 @@ class Todo {
   String content;
   bool done;
   DateTime creationDate; // Oluşturulma tarihi
-  DateTime lastUpdated; // Son güncelleme tarihi
+  DateTime lastUpdated; 
 
   Todo({
     required this.content,
@@ -15,8 +15,8 @@ class Todo {
     return {
       "content": content,
       "done": done,
-      "creationDate": creationDate.toIso8601String(), // Oluşturulma tarihini JSON'a dönüştür
-      "lastUpdated": lastUpdated.toIso8601String(), // Son güncelleme tarihini JSON'a dönüştür
+      "creationDate": creationDate.toString(), // Oluşturulma tarihini json nüştür
+      "lastUpdated": lastUpdated.toString(), 
     };
   }
 
@@ -24,9 +24,8 @@ class Todo {
     return Todo(
       content: map["content"],
       done: map["done"],
-      creationDate: DateTime.parse(map["creationDate"]), // JSON'dan oluşturulma tarihini dönüştür
-      lastUpdated: DateTime.parse(map["lastUpdated"]), // JSON'dan son güncelleme tarihini dönüştür
+      creationDate: DateTime.parse(map["creationDate"]), // Jsondan oluşturulma tarihini dönüştür
+      lastUpdated: DateTime.parse(map["lastUpdated"]), 
     );
   }
-  
 }
